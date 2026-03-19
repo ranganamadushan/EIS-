@@ -1,17 +1,17 @@
 :root {
-    --bg-color: #0d1117;
-    --sidebar-bg: rgba(22, 27, 34, 0.85);
-    --panel-bg: rgba(33, 38, 45, 0.7);
-    --text-main: #e6edf3;
-    --text-muted: #8b949e;
-    --border-color: #30363d;
+    --bg-color: #f6f8fa;
+    --sidebar-bg: rgba(255, 255, 255, 0.9);
+    --panel-bg: rgba(246, 248, 250, 0.8);
+    --text-main: #24292f;
+    --text-muted: #57606a;
+    --border-color: #d0d7de;
     
-    --accent-primary: #58a6ff;
-    --accent-hover: #3182ce;
-    --accent-success: #2ea043;
-    --accent-success-hover: #3fb950;
-    --accent-secondary: #484f58;
-    --accent-secondary-hover: #6e7681;
+    --accent-primary: #0969da;
+    --accent-hover: #0353a4;
+    --accent-success: #2da44e;
+    --accent-success-hover: #2c974b;
+    --accent-secondary: #57606a;
+    --accent-secondary-hover: #424a53;
 }
 
 * {
@@ -26,7 +26,7 @@ body {
     color: var(--text-main);
     height: 100vh;
     overflow: hidden;
-    background-image: radial-gradient(circle at top right, #1f2937, #0d1117 40%);
+    background-image: radial-gradient(circle at top right, #ffffff, #f6f8fa 40%);
 }
 
 .app-container {
@@ -56,10 +56,10 @@ body {
     font-weight: 700;
     margin-bottom: 24px;
     text-align: center;
-    color: #ffffff;
+    color: #24292f;
     text-transform: uppercase;
     letter-spacing: 1px;
-    background: -webkit-linear-gradient(45deg, #58a6ff, #a371f7);
+    background: -webkit-linear-gradient(45deg, #0969da, #8250df);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -139,7 +139,7 @@ input[type="file"] {
 
 .input-row input {
     width: 75px;
-    background-color: rgba(13, 17, 23, 0.8);
+    background-color: rgba(255, 255, 255, 0.9);
     border: 1px solid var(--border-color);
     color: var(--text-main);
     padding: 6px 8px;
@@ -226,7 +226,7 @@ input[type="file"] {
 
 .btn-small {
     background-color: var(--accent-secondary);
-    color: var(--text-main);
+    color: #fff;
     border: none;
     padding: 4px 8px;
     border-radius: 4px;
@@ -255,11 +255,11 @@ input[type="file"] {
     background: transparent; 
 }
 ::-webkit-scrollbar-thumb {
-    background: #484f58; 
+    background: #afb8c1; 
     border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #6e7681; 
+    background: #8c959f; 
 }
 
 .trace-group {
@@ -270,7 +270,7 @@ input[type="file"] {
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--text-main);
-    background-color: rgba(13, 17, 23, 0.6);
+    background-color: rgba(240, 243, 246, 0.8);
     padding: 8px 10px;
     border-radius: 6px;
     margin-bottom: 6px;
@@ -282,7 +282,7 @@ input[type="file"] {
 }
 
 .trace-group-title:hover {
-    background-color: rgba(48, 54, 61, 0.8);
+    background-color: rgba(224, 228, 232, 0.8);
 }
 
 .trace-item {
@@ -293,7 +293,7 @@ input[type="file"] {
     transition: background-color 0.1s;
 }
 .trace-item:hover {
-    background-color: rgba(255,255,255,0.05);
+    background-color: rgba(0,0,0,0.05);
 }
 
 .color-indicator {
@@ -301,8 +301,8 @@ input[type="file"] {
     height: 14px;
     border-radius: 3px;
     margin-right: 10px;
-    border: 1px solid rgba(255,255,255,0.3);
-    box-shadow: 0 0 4px rgba(0,0,0,0.5);
+    border: 1px solid rgba(0,0,0,0.15);
+    box-shadow: 0 0 4px rgba(0,0,0,0.1);
 }
 
 .empty-state {

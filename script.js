@@ -18,24 +18,24 @@ document.addEventListener('DOMContentLoaded', () => {
 function initChart() {
     chartLayout = {
         title: {
-            text: 'Nyquist Plot: <b style="color:#8b949e; font-size:14px;">No Data</b>',
-            font: { color: '#e6edf3', size: 20, family: 'Inter, sans-serif' }
+            text: 'Nyquist Plot: <b style="color:#57606a; font-size:14px;">No Data</b>',
+            font: { color: '#24292f', size: 20, family: 'Inter, sans-serif' }
         },
-        paper_bgcolor: '#0d1117',
-        plot_bgcolor: '#0d1117',
+        paper_bgcolor: '#ffffff',
+        plot_bgcolor: '#ffffff',
         xaxis: {
-            title: { text: "Z' (kΩ)", font: { color: '#e6edf3', size: 14, weight: 'bold' } },
-            tickfont: { color: '#8b949e' },
-            gridcolor: '#30363d',
-            zerolinecolor: '#8b949e',
+            title: { text: "Z' (kΩ)", font: { color: '#24292f', size: 14, weight: 'bold' } },
+            tickfont: { color: '#57606a' },
+            gridcolor: '#e1e4e8',
+            zerolinecolor: '#57606a',
             zerolinewidth: 1,
             showgrid: true
         },
         yaxis: {
-            title: { text: "-Z'' (kΩ)", font: { color: '#e6edf3', size: 14, weight: 'bold' } },
-            tickfont: { color: '#8b949e' },
-            gridcolor: '#30363d',
-            zerolinecolor: '#8b949e',
+            title: { text: "-Z'' (kΩ)", font: { color: '#24292f', size: 14, weight: 'bold' } },
+            tickfont: { color: '#57606a' },
+            gridcolor: '#e1e4e8',
+            zerolinecolor: '#57606a',
             zerolinewidth: 1,
             showgrid: true
         },
@@ -284,7 +284,7 @@ function updatePlot() {
 
     let finalLayout = JSON.parse(JSON.stringify(chartLayout));
     if (fileNameDisplay) {
-        finalLayout.title.text = `Nyquist Plot: <span style="color:#58a6ff;">${fileNameDisplay}</span>`;
+        finalLayout.title.text = `Nyquist Plot: <span style="color:#0969da;">${fileNameDisplay}</span>`;
     }
     finalLayout.annotations = annotations;
     
