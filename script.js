@@ -58,6 +58,7 @@ function attachEventListeners() {
     document.getElementById('csv-upload').addEventListener('change', handleFileUpload);
     document.getElementById('apply-limits-btn').addEventListener('click', applyLimits);
     document.getElementById('auto-scale-btn').addEventListener('click', forceAutoscale);
+    document.getElementById('show-lines-toggle').addEventListener('change', updatePlot);
     document.getElementById('export-btn').addEventListener('click', exportSelectedCSV);
     document.getElementById('select-all-btn').addEventListener('click', () => setAllTraces(true));
     document.getElementById('clear-all-btn').addEventListener('click', () => setAllTraces(false));
@@ -250,18 +251,23 @@ function updatePlot() {
     let annotations = [];
     let seenBaseNames = new Set();
     
+    const showLines = document.getElementById('show-lines-toggle').checked;
+    const drawMode = showLines ? 'lines+markers' : 'markers';
+    const symbols = ['circle', 'square', 'diamond', 'triangle-up', 'triangle-down', 'cross', 'x', 'pentagon', 'hexagram', 'star'];
+
     globalSamples.forEach((s, idx) => {
         if (!s.visible) return;
 
         let color = customColors[idx % customColors.length];
+        let symbol = symbols[idx % symbols.length];
         
         plotlyData.push({
             x: s.z_real,
             y: s.z_imag,
-            mode: 'lines+markers',
+            mode: drawMode,
             name: s.name,
             line: { width: 1.5, color: color },
-            marker: { size: 4 },
+            marker: { size: 6, symbol: symbol },
             type: 'scatter'
         });
 
