@@ -95,6 +95,18 @@ function parseCSVData(rawText) {
     let normalizedText = rawText.replace(/;/g, ',').replace(/\t/g, ',');
     let lines = normalizedText.split(/\r?\n/);
     
+    // 1. Extract the full measurement description for grouping (Categorization)
+    let fileMeasurement = "Default Measurement";
+    for (let j = 0; j < Math.min(20, lines.length); j++) {
+        if (lines[j].toLowerCase().startsWith('measurement:')) {
+            let parts = lines[j].split(',');
+            if (parts.length > 1) {
+                fileMeasurement = parts.slice(1).join(',').trim().replace(/(^,+)|(,+$)/g, '');
+            }
+            break;
+        }
+    }
+
     let samples = [];
     let counts = {};
     let i = 0;
@@ -113,37 +125,18 @@ function parseCSVData(rawText) {
             let foundImagIdx = cells.findIndex(h => h.includes("-z''") && h.includes("ohm"));
             if (foundImagIdx !== -1) zImagIdx = foundImagIdx;
 
-            let rawName = "Sample";
-            if (i > 0 && lines[i-1].trim() !== '') {
-                rawName = lines[i-1].trim().replace(/^['",]{1,}/, '').replace(/['",]{1,}$/, '');
-            }
-
-            let cleanName = rawName;
-            let foundRef = false;
-
-            // Search first 20 lines for 'Measurement:' metadata
-            for (let j = 0; j < Math.min(20, lines.length); j++) {
-                if (lines[j].toLowerCase().includes('measurement:')) {
-                    // Split and filter out the 'Measurement:' tag and any empty padding cells
-                    let parts = lines[j].split(',').map(p => p.trim()).filter(p => p !== '' && !p.toLowerCase().includes('measurement:'));
-                    if (parts.length >= 5) {
-                        cleanName = parts[4]; // Target 5th data element
-                        foundRef = true;
-                        break;
-                    }
+            // 2. Extract specific legend name from Row 5, Column 5 (or line before header)
+            let col5Value = "Sample";
+            if (i > 0) {
+                let prevLine = lines[i-1].trim();
+                let prevParts = prevLine.split(',').map(p => p.trim()).filter(p => p !== '');
+                if (prevParts.length >= 5) {
+                    col5Value = prevParts[4];
                 }
             }
 
-            // Fallback to strict "Row 5, Column 5" if no Measurement tag found
-            if (!foundRef && lines.length >= 5) {
-                let row5parts = lines[4].split(',').map(p => p.trim()).filter(p => p !== '');
-                if (row5parts.length >= 5) {
-                    cleanName = row5parts[4];
-                }
-            }
-
-            counts[cleanName] = (counts[cleanName] || 0) + 1;
-            let uniqueName = `${cleanName} (Run ${counts[cleanName]})`;
+            counts[col5Value] = (counts[col5Value] || 0) + 1;
+            let uniqueName = `${col5Value} (Run ${counts[col5Value]})`;
 
             let zReal = [], zImag = [];
             i++;
@@ -170,7 +163,7 @@ function parseCSVData(rawText) {
 
             if (zReal.length > 0 && zImag.length > 0) {
                 samples.push({
-                    base_name: cleanName,
+                    base_name: fileMeasurement,
                     name: uniqueName,
                     z_real: zReal,
                     z_imag: zImag,
