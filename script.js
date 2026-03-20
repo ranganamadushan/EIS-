@@ -119,12 +119,26 @@ function parseCSVData(rawText) {
             }
 
             let cleanName = rawName;
-            
-            // Extract legend name exactly from row 5, column 5 (0-indexed: line 4, column 4)
-            if (lines.length >= 5) {
-                let row5parts = lines[4].split(',');
+            let foundRef = false;
+
+            // Search first 20 lines for 'Measurement:' metadata
+            for (let j = 0; j < Math.min(20, lines.length); j++) {
+                if (lines[j].toLowerCase().includes('measurement:')) {
+                    // Split and filter out the 'Measurement:' tag and any empty padding cells
+                    let parts = lines[j].split(',').map(p => p.trim()).filter(p => p !== '' && !p.toLowerCase().includes('measurement:'));
+                    if (parts.length >= 5) {
+                        cleanName = parts[4]; // Target 5th data element
+                        foundRef = true;
+                        break;
+                    }
+                }
+            }
+
+            // Fallback to strict "Row 5, Column 5" if no Measurement tag found
+            if (!foundRef && lines.length >= 5) {
+                let row5parts = lines[4].split(',').map(p => p.trim()).filter(p => p !== '');
                 if (row5parts.length >= 5) {
-                    cleanName = row5parts[4].trim();
+                    cleanName = row5parts[4];
                 }
             }
 
