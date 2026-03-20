@@ -125,13 +125,14 @@ function parseCSVData(rawText) {
             let foundImagIdx = cells.findIndex(h => h.includes("-z''") && h.includes("ohm"));
             if (foundImagIdx !== -1) zImagIdx = foundImagIdx;
 
-            // 2. Extract specific legend name from Row 5, Column 5 (or line before header)
+            // 2. Extract specific legend name from the last column of the data line (Concentration)
             let col5Value = "Sample";
             if (i > 0) {
                 let prevLine = lines[i-1].trim();
                 let prevParts = prevLine.split(',').map(p => p.trim()).filter(p => p !== '');
-                if (prevParts.length >= 5) {
-                    col5Value = prevParts[4];
+                if (prevParts.length > 0) {
+                    // Use the last non-empty field (e.g., 10^(-1)M) as the label
+                    col5Value = prevParts[prevParts.length - 1];
                 }
             }
 
