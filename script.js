@@ -2,7 +2,7 @@
 let globalSamples = [];
 let plotlyData = [];
 let chartLayout = {};
-let fileNameDisplay = "";
+let fileNamesDisplay = [];
 // Extended palette roughly matching matplotlib tab20 + tab20b + tab20c
 let customColors = [
     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
@@ -65,43 +65,63 @@ function attachEventListeners() {
 }
 
 function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
 
-    fileNameDisplay = file.name;
-    document.getElementById('file-name').textContent = fileNameDisplay;
+    fileNamesDisplay = files.map(f => f.name);
+    const displayName = files.length === 1 ? files[0].name : `${files.length} files selected`;
+    document.getElementById('file-name').textContent = displayName;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const text = e.target.result;
-        parseCSVData(text);
-    };
-    reader.onerror = () => {
-        alert("Failed to read the file.");
-    };
-    reader.readAsText(file);
+    let allSamples = [];
+    let filePromises = files.map(file => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const text = e.target.result;
+                const samples = parseCSVData(text, file.name);
+                if (samples) {
+                    allSamples = allSamples.concat(samples);
+                }
+                resolve();
+            };
+            reader.onerror = () => {
+                console.warn(`Failed to read the file: ${file.name}`);
+                resolve();
+            };
+            reader.readAsText(file);
+        });
+    });
+
+    Promise.all(filePromises).then(() => {
+        if (allSamples.length === 0) {
+            alert("No valid numerical data pairs found in the selected files.");
+            return;
+        }
+        globalSamples = allSamples;
+        forceAutoscale(); // Also updates UI components
+    });
 }
 
-function parseCSVData(rawText) {
-    globalSamples = []; // Clear existing
+function parseCSVData(rawText, filename) {
     let lowerText = rawText.toLowerCase();
     
     // Fallback detection (similar to python script logic)
     if (!lowerText.includes('freq') && !lowerText.includes('hz')) {
-        alert(`Could not detect a valid format in:\n${fileNameDisplay}`);
-        return;
+        console.warn(`Could not detect a valid format in:\n${filename}`);
+        return null;
     }
 
     let normalizedText = rawText.replace(/;/g, ',').replace(/\t/g, ',');
     let lines = normalizedText.split(/\r?\n/);
     
-    // 1. Extract the full measurement description for grouping (Categorization)
+    // 1. Extract the concentration (last column) for grouping
     let fileMeasurement = "Default Measurement";
     for (let j = 0; j < Math.min(20, lines.length); j++) {
         if (lines[j].toLowerCase().startsWith('measurement:')) {
-            let parts = lines[j].split(',');
+            let parts = lines[j].split(',').map(p => p.trim()).filter(p => p !== '');
             if (parts.length > 1) {
-                fileMeasurement = parts.slice(1).join(',').trim().replace(/(^,+)|(,+$)/g, '');
+                // Use the very LAST item (Concentration) as the Group Category
+                fileMeasurement = parts[parts.length - 1];
             }
             break;
         }
@@ -125,19 +145,14 @@ function parseCSVData(rawText) {
             let foundImagIdx = cells.findIndex(h => h.includes("-z''") && h.includes("ohm"));
             if (foundImagIdx !== -1) zImagIdx = foundImagIdx;
 
-            // 2. Extract specific legend name from the last column of the data line (Concentration)
-            let col5Value = "Sample";
-            if (i > 0) {
-                let prevLine = lines[i-1].trim();
-                let prevParts = prevLine.split(',').map(p => p.trim()).filter(p => p !== '');
-                if (prevParts.length > 0) {
-                    // Use the last non-empty field (e.g., 10^(-1)M) as the label
-                    col5Value = prevParts[prevParts.length - 1];
-                }
-            }
+            // 2. Full Name for legend = FileName + Concentration
+            let shortFileName = filename.replace('.csv', '');
+            let uniqueName = `${fileMeasurement} (${shortFileName})`;
 
-            counts[col5Value] = (counts[col5Value] || 0) + 1;
-            let uniqueName = `${col5Value} (Run ${counts[col5Value]})`;
+            counts[uniqueName] = (counts[uniqueName] || 0) + 1;
+            if (counts[uniqueName] > 1) {
+                uniqueName += ` [Tr ${counts[uniqueName]}]`;
+            }
 
             let zReal = [], zImag = [];
             i++;
@@ -177,12 +192,11 @@ function parseCSVData(rawText) {
     }
 
     if (samples.length === 0) {
-        alert("No valid numerical data pairs found in the CSV file.");
-        return;
+        console.warn(`No valid numerical data pairs found in the CSV file: ${filename}`);
+        return null;
     }
 
-    globalSamples = samples;
-    forceAutoscale(); // Also updates UI components
+    return samples;
 }
 
 function renderSidebar() {
@@ -304,8 +318,9 @@ function updatePlot() {
     });
 
     let finalLayout = JSON.parse(JSON.stringify(chartLayout));
-    if (fileNameDisplay) {
-        finalLayout.title.text = `Nyquist Plot: <span style="color:#0969da;">${fileNameDisplay}</span>`;
+    if (fileNamesDisplay.length > 0) {
+        let titleText = fileNamesDisplay.length === 1 ? fileNamesDisplay[0] : `${fileNamesDisplay.length} Files Data`;
+        finalLayout.title.text = `Nyquist Plot: <span style="color:#0969da;">${titleText}</span>`;
     }
     finalLayout.annotations = annotations;
     
