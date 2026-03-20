@@ -120,14 +120,11 @@ function parseCSVData(rawText) {
 
             let cleanName = rawName;
             
-            // Extract legend name from the 'Measurement' line at the top of the file
-            for (let j = 0; j < Math.min(20, lines.length); j++) {
-                if (lines[j].toLowerCase().startsWith('measurement')) {
-                    let parts = lines[j].split(',');
-                    if (parts.length > 1) {
-                        cleanName = parts.slice(1).join(',').trim().replace(/(^,+)|(,+$)/g, '');
-                    }
-                    break;
+            // Extract legend name exactly from row 5, column 5 (0-indexed: line 4, column 4)
+            if (lines.length >= 5) {
+                let row5parts = lines[4].split(',');
+                if (row5parts.length >= 5) {
+                    cleanName = row5parts[4].trim();
                 }
             }
 
