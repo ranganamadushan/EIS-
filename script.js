@@ -118,8 +118,18 @@ function parseCSVData(rawText) {
                 rawName = lines[i-1].trim().replace(/^['",]{1,}/, '').replace(/['",]{1,}$/, '');
             }
 
-            let match = rawName.match(/10\^\(-?\d+\)m|1m/i);
-            let cleanName = match ? match[0] : rawName;
+            let cleanName = rawName;
+            
+            // Extract legend name from the 'Measurement' line at the top of the file
+            for (let j = 0; j < Math.min(20, lines.length); j++) {
+                if (lines[j].toLowerCase().startsWith('measurement')) {
+                    let parts = lines[j].split(',');
+                    if (parts.length > 1) {
+                        cleanName = parts.slice(1).join(',').trim().replace(/(^,+)|(,+$)/g, '');
+                    }
+                    break;
+                }
+            }
 
             counts[cleanName] = (counts[cleanName] || 0) + 1;
             let uniqueName = `${cleanName} (Run ${counts[cleanName]})`;
