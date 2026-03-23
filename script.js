@@ -279,8 +279,9 @@ function updatePlot() {
             seenBaseNames.add(s.base_name);
             if (s.z_real.length > 0) {
                 let lastIdx = s.z_real.length - 1;
-                // Simple vertical stacking to prevent overlap without making a mess
-                let ayOffset = -30 - (idx * 25); 
+                // Compact vertical stack on the right side of the end point
+                let ayOffset = -20 - (idx * 15); 
+                if (idx > 10) ayOffset = (idx - 10) * 15; // Split into two columns if many traces
 
                 annotations.push({
                     x: s.z_real[lastIdx],
@@ -288,16 +289,16 @@ function updatePlot() {
                     xref: 'x', yref: 'y',
                     text: `<b>${s.base_name}</b>`,
                     showarrow: true,
-                    arrowhead: 2,
-                    arrowsize: 1,
-                    arrowwidth: 1.5,
+                    arrowhead: 1,
+                    arrowsize: 0.8,
+                    arrowwidth: 1,
                     arrowcolor: color,
-                    ax: 40,
+                    ax: 30, // Short horizontal offset
                     ay: ayOffset, 
-                    font: { color: color, size: 13, family: 'Inter, sans-serif' },
-                    bgcolor: 'rgba(255, 255, 255, 0.85)', // Semi-transparent for better depth
+                    font: { color: color, size: 12, family: 'Inter, sans-serif' },
+                    bgcolor: 'rgba(255, 255, 255, 0.9)',
                     bordercolor: color,
-                    borderwidth: 1.5,
+                    borderwidth: 1,
                     borderpad: 2
                 });
             }
