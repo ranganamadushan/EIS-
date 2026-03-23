@@ -49,7 +49,7 @@ function initChart() {
         responsive: true, 
         displayModeBar: true,
         scrollZoom: true,
-        editable: true // Enable dragging and editing of annotations
+        editable: false // Reverted to false as per user preference
     };
     
     Plotly.newPlot('plot-container', [], chartLayout, config);
@@ -279,7 +279,16 @@ function updatePlot() {
         if (!seenBaseNames.has(s.base_name)) {
             seenBaseNames.add(s.base_name);
             if (s.z_real.length > 0) {
-                let lastIdx = s.z_real.length - 1;
+                // Point the arrow to the PEAK of the Nyquist arc (Maximum Y/-Z'' value)
+                let peakIdx = 0;
+                let maxY = -Infinity;
+                for (let j = 0; j < s.z_imag.length; j++) {
+                    if (s.z_imag[j] > maxY) {
+                        maxY = s.z_imag[j];
+                        peakIdx = j;
+                    }
+                }
+                
                 // Double column stacking (all upwards) to avoid bottom cutoff
                 let colIdx = idx % 2;
                 let rowIdx = Math.floor(idx / 2);
@@ -287,8 +296,8 @@ function updatePlot() {
                 let ayOffset = -20 - (rowIdx * 22); 
 
                 annotations.push({
-                    x: s.z_real[lastIdx],
-                    y: s.z_imag[lastIdx],
+                    x: s.z_real[peakIdx],
+                    y: s.z_imag[peakIdx],
                     xref: 'x', yref: 'y',
                     text: `<b>${s.base_name}</b>`,
                     showarrow: true,
