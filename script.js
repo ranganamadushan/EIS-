@@ -48,7 +48,8 @@ function initChart() {
     let config = { 
         responsive: true, 
         displayModeBar: true,
-        scrollZoom: true
+        scrollZoom: true,
+        editable: true // Enable dragging and editing of annotations
     };
     
     Plotly.newPlot('plot-container', [], chartLayout, config);
