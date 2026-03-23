@@ -279,9 +279,11 @@ function updatePlot() {
             seenBaseNames.add(s.base_name);
             if (s.z_real.length > 0) {
                 let lastIdx = s.z_real.length - 1;
-                // Compact vertical stack on the right side of the end point
-                let ayOffset = -20 - (idx * 15); 
-                if (idx > 10) ayOffset = (idx - 10) * 15; // Split into two columns if many traces
+                // Double column stacking (all upwards) to avoid bottom cutoff
+                let colIdx = idx % 2;
+                let rowIdx = Math.floor(idx / 2);
+                let axOffset = 40 + (colIdx * 110);
+                let ayOffset = -20 - (rowIdx * 22); 
 
                 annotations.push({
                     x: s.z_real[lastIdx],
@@ -293,7 +295,7 @@ function updatePlot() {
                     arrowsize: 0.8,
                     arrowwidth: 1,
                     arrowcolor: color,
-                    ax: 30, // Short horizontal offset
+                    ax: axOffset,
                     ay: ayOffset, 
                     font: { color: color, size: 12, family: 'Inter, sans-serif' },
                     bgcolor: 'rgba(255, 255, 255, 0.9)',
