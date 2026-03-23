@@ -49,7 +49,19 @@ function initChart() {
         responsive: true, 
         displayModeBar: true,
         scrollZoom: true,
-        editable: false // Reverted to false as per user preference
+        editable: true,
+        edits: {
+            annotationTail: true,      // Allow moving the text box (tail)
+            annotationPosition: false, // Prevent moving the arrow head (anchor point)
+            annotationText: false,
+            axisTitleText: false,
+            titleText: false,
+            legendPosition: false,
+            legendText: false,
+            shapePosition: false,
+            colorbarPosition: false,
+            colorbarTitleText: false
+        }
     };
     
     Plotly.newPlot('plot-container', [], chartLayout, config);
