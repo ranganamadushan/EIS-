@@ -279,6 +279,12 @@ function updatePlot() {
             seenBaseNames.add(s.base_name);
             if (s.z_real.length > 0) {
                 let lastIdx = s.z_real.length - 1;
+                // Stagger markers based on index to spread labels radially
+                let angle = (idx * 137.5) * (Math.PI / 180); // Fibonacci spiral angle for good distribution
+                let distance = 40 + (idx % 3) * 15; // Vary distance slightly
+                let ax = Math.cos(angle) * distance;
+                let ay = Math.sin(angle) * distance;
+
                 annotations.push({
                     x: s.z_real[lastIdx],
                     y: s.z_imag[lastIdx],
@@ -289,10 +295,10 @@ function updatePlot() {
                     arrowsize: 1,
                     arrowwidth: 1.5,
                     arrowcolor: color,
-                    ax: 30, // Offset horizontally
-                    ay: -30, // Offset vertically
+                    ax: ax,
+                    ay: -Math.abs(ay), // Prefer pointing upwards/outwards
                     font: { color: color, size: 14, weight: 'bold', family: 'Inter, sans-serif' },
-                    bgcolor: 'rgba(255, 255, 255, 0.8)',
+                    bgcolor: 'rgba(255, 255, 255, 0.9)',
                     bordercolor: color,
                     borderwidth: 1,
                     borderpad: 4
