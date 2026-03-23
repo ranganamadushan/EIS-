@@ -40,7 +40,7 @@ function initChart() {
             showgrid: true
         },
         showlegend: false, // Custom sidebar handles legends
-        margin: { l: 80, r: 60, t: 80, b: 80 },
+        margin: { l: 90, r: 90, t: 80, b: 120 }, // Increased margins for labels
         hovermode: 'closest',
         dragmode: 'pan'
     };
