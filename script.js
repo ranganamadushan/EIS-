@@ -118,8 +118,12 @@ function parseCSVData(rawText) {
                 rawName = lines[i-1].trim().replace(/^['",]{1,}/, '').replace(/['",]{1,}$/, '');
             }
 
-            let match = rawName.match(/10\^\(-?\d+\)m|1m/i);
-            let cleanName = match ? match[0] : rawName;
+            // Extract legend name from the last comma-separated part (Concentration)
+            let cleanName = rawName;
+            let parts = rawName.split(',').map(p => p.trim()).filter(p => p !== '');
+            if (parts.length > 0) {
+                cleanName = parts[parts.length - 1]; // Use the last non-empty field
+            }
 
             counts[cleanName] = (counts[cleanName] || 0) + 1;
             let uniqueName = `${cleanName} (Run ${counts[cleanName]})`;
