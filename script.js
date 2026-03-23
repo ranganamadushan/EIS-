@@ -284,9 +284,18 @@ function updatePlot() {
                     y: s.z_imag[lastIdx],
                     xref: 'x', yref: 'y',
                     text: s.base_name,
-                    showarrow: false,
-                    yshift: -15,
-                    font: { color: color, size: 13, weight: 'bold', family: 'Inter, sans-serif' }
+                    showarrow: true,
+                    arrowhead: 2,
+                    arrowsize: 1,
+                    arrowwidth: 1.5,
+                    arrowcolor: color,
+                    ax: 30, // Offset horizontally
+                    ay: -30, // Offset vertically
+                    font: { color: color, size: 14, weight: 'bold', family: 'Inter, sans-serif' },
+                    bgcolor: 'rgba(255, 255, 255, 0.8)',
+                    bordercolor: color,
+                    borderwidth: 1,
+                    borderpad: 4
                 });
             }
         }
