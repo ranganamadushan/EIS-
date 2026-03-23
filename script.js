@@ -279,29 +279,28 @@ function updatePlot() {
             seenBaseNames.add(s.base_name);
             if (s.z_real.length > 0) {
                 let lastIdx = s.z_real.length - 1;
-                // Stagger markers based on index to spread labels radially
-                let angle = (idx * 137.5) * (Math.PI / 180); // Fibonacci spiral angle for good distribution
-                let distance = 40 + (idx % 3) * 15; // Vary distance slightly
-                let ax = Math.cos(angle) * distance;
-                let ay = Math.sin(angle) * distance;
+                // Stronger staggering: use much larger distances and varying directions
+                let angle = (idx * 1.0) * (Math.PI / 1.5); // Spread them across different quadrants
+                let distance = 60 + (idx * 25); // Increase distance significantly per trace
 
                 annotations.push({
                     x: s.z_real[lastIdx],
                     y: s.z_imag[lastIdx],
                     xref: 'x', yref: 'y',
-                    text: s.base_name,
+                    text: `<b>${s.base_name}</b>`,
                     showarrow: true,
                     arrowhead: 2,
-                    arrowsize: 1,
-                    arrowwidth: 1.5,
+                    arrowsize: 1.2,
+                    arrowwidth: 2,
                     arrowcolor: color,
-                    ax: ax,
-                    ay: -Math.abs(ay), // Prefer pointing upwards/outwards
-                    font: { color: color, size: 14, weight: 'bold', family: 'Inter, sans-serif' },
-                    bgcolor: 'rgba(255, 255, 255, 0.9)',
+                    ax: Math.cos(angle) * distance,
+                    ay: -Math.abs(Math.sin(angle) * distance) - 20, // Spread upwards primarily
+                    font: { color: color, size: 15, family: 'Inter, sans-serif' },
+                    bgcolor: 'white', // Fully opaque for better legibility
                     bordercolor: color,
-                    borderwidth: 1,
-                    borderpad: 4
+                    borderwidth: 2,
+                    borderpad: 5,
+                    opacity: 1
                 });
             }
         }
