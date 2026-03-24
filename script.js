@@ -2,7 +2,7 @@
 let globalSamples = [];
 let plotlyData = [];
 let chartLayout = {};
-let fileNameDisplay = "";
+let fileNamesDisplay = [];
 // Extended palette roughly matching matplotlib tab20 + tab20b + tab20c
 let customColors = [
     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
@@ -78,31 +78,51 @@ function attachEventListeners() {
 }
 
 function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
 
-    fileNameDisplay = file.name;
-    document.getElementById('file-name').textContent = fileNameDisplay;
+    fileNamesDisplay = files.map(f => f.name);
+    const displayName = files.length === 1 ? files[0].name : `${files.length} files selected`;
+    document.getElementById('file-name').textContent = displayName;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const text = e.target.result;
-        parseCSVData(text);
-    };
-    reader.onerror = () => {
-        alert("Failed to read the file.");
-    };
-    reader.readAsText(file);
+    let allSamples = [];
+    let filePromises = files.map((file, index) => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const text = e.target.result;
+                const fileIndex = index + 1;
+                const samples = parseCSVData(text, file.name, fileIndex);
+                if (samples) {
+                    allSamples = allSamples.concat(samples);
+                }
+                resolve();
+            };
+            reader.onerror = () => {
+                console.warn(`Failed to read the file: ${file.name}`);
+                resolve();
+            };
+            reader.readAsText(file);
+        });
+    });
+
+    Promise.all(filePromises).then(() => {
+        if (allSamples.length === 0) {
+            alert("No valid numerical data pairs found in the selected files.");
+            return;
+        }
+        globalSamples = allSamples;
+        forceAutoscale(); // Also updates UI components
+    });
 }
 
-function parseCSVData(rawText) {
-    globalSamples = []; // Clear existing
+function parseCSVData(rawText, filename, fileIndex) {
     let lowerText = rawText.toLowerCase();
     
     // Fallback detection (similar to python script logic)
     if (!lowerText.includes('freq') && !lowerText.includes('hz')) {
-        alert(`Could not detect a valid format in:\n${fileNameDisplay}`);
-        return;
+        console.warn(`Could not detect a valid format in:\n${filename}`);
+        return null;
     }
 
     let normalizedText = rawText.replace(/;/g, ',').replace(/\t/g, ',');
@@ -132,14 +152,18 @@ function parseCSVData(rawText) {
             }
 
             // Extract legend name from the last comma-separated part (Concentration)
-            let cleanName = rawName;
+            let concentration = rawName;
             let parts = rawName.split(',').map(p => p.trim()).filter(p => p !== '');
             if (parts.length > 0) {
-                cleanName = parts[parts.length - 1]; // Use the last non-empty field
+                concentration = parts[parts.length - 1]; // Use the last non-empty field
             }
 
-            counts[cleanName] = (counts[cleanName] || 0) + 1;
-            let uniqueName = `${cleanName} (Run ${counts[cleanName]})`;
+            let uniqueName = `${concentration}[${fileIndex}]`;
+
+            counts[uniqueName] = (counts[uniqueName] || 0) + 1;
+            if (counts[uniqueName] > 1) {
+                uniqueName = `${concentration}[${fileIndex}] (Run ${counts[uniqueName]})`;
+            }
 
             let zReal = [], zImag = [];
             i++;
@@ -166,7 +190,7 @@ function parseCSVData(rawText) {
 
             if (zReal.length > 0 && zImag.length > 0) {
                 samples.push({
-                    base_name: cleanName,
+                    base_name: uniqueName, // Group by uniqueName so it shows on the chart as 10^(-7)[1]
                     name: uniqueName,
                     z_real: zReal,
                     z_imag: zImag,
@@ -179,12 +203,11 @@ function parseCSVData(rawText) {
     }
 
     if (samples.length === 0) {
-        alert("No valid numerical data pairs found in the CSV file.");
-        return;
+        console.warn(`No valid numerical data pairs found in the CSV file: ${filename}`);
+        return null;
     }
 
-    globalSamples = samples;
-    forceAutoscale(); // Also updates UI components
+    return samples;
 }
 
 function renderSidebar() {
@@ -330,8 +353,9 @@ function updatePlot() {
     });
 
     let finalLayout = JSON.parse(JSON.stringify(chartLayout));
-    if (fileNameDisplay) {
-        finalLayout.title.text = `Nyquist Plot: <span style="color:#0969da;">${fileNameDisplay}</span>`;
+    if (fileNamesDisplay.length > 0) {
+        let titleText = fileNamesDisplay.length === 1 ? fileNamesDisplay[0] : `${fileNamesDisplay.length} Files Data`;
+        finalLayout.title.text = `Nyquist Plot: <span style="color:#0969da;">${titleText}</span>`;
     }
     finalLayout.annotations = annotations;
     
