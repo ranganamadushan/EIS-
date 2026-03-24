@@ -5,6 +5,7 @@ let chartLayout = {};
 let fileNamesDisplay = [];
 let fileCustomNames = {}; // Stores custom labels per filename
 let customAnnotationOffsets = {}; // Stores { ax, ay } per base_name to persist drags
+let groupLabelSettings = {}; // Stores { labelVisible: true/false } per base_name
 // Extended palette roughly matching matplotlib tab20 + tab20b + tab20c
 let customColors = [
     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
@@ -305,14 +306,41 @@ function renderSidebar() {
 
         let groupTitle = document.createElement('div');
         groupTitle.className = 'trace-group-title';
-        groupTitle.innerHTML = `<span title="${baseName}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">${baseName}</span> <span style="font-size: 0.8rem; color: #8b949e;">Toggle</span>`;
-        groupTitle.onclick = () => {
+
+        // 1. Text container
+        let textSpan = document.createElement('span');
+        textSpan.title = baseName;
+        textSpan.style.cssText = "white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; flex: 1;";
+        textSpan.textContent = baseName;
+
+        // 2. Main Graph Toggle
+        let toggleStateBtn = document.createElement('span');
+        toggleStateBtn.style.cssText = "font-size: 0.75rem; color: #fff; background: var(--accent-main); padding: 2px 6px; border-radius: 4px; cursor: pointer; margin-left: 8px;";
+        toggleStateBtn.textContent = "Toggle";
+        toggleStateBtn.onclick = (e) => {
+            e.stopPropagation();
             let allVisible = indices.every(i => globalSamples[i].visible);
             let newState = !allVisible;
             indices.forEach(i => globalSamples[i].visible = newState);
             updateCheckboxes();
             updatePlot();
         };
+
+        // 3. Label Specific Toggle
+        if (groupLabelSettings[baseName] === undefined) groupLabelSettings[baseName] = true;
+        let labelToggleBtn = document.createElement('span');
+        labelToggleBtn.style.cssText = `font-size: 0.75rem; color: #fff; background: ${groupLabelSettings[baseName] ? "#2da44e" : "#6e7681"}; padding: 2px 6px; border-radius: 4px; cursor: pointer; margin-left: 6px;`;
+        labelToggleBtn.textContent = "Label";
+        labelToggleBtn.onclick = (e) => {
+            e.stopPropagation();
+            groupLabelSettings[baseName] = !groupLabelSettings[baseName];
+            labelToggleBtn.style.backgroundColor = groupLabelSettings[baseName] ? "#2da44e" : "#6e7681";
+            updatePlot();
+        };
+
+        groupTitle.appendChild(textSpan);
+        groupTitle.appendChild(toggleStateBtn);
+        groupTitle.appendChild(labelToggleBtn);
         groupDiv.appendChild(groupTitle);
 
         indices.forEach(idx => {
@@ -383,8 +411,10 @@ function updatePlot() {
             type: 'scatter'
         });
 
-        const showLabels = document.getElementById('show-labels-toggle').checked;
-        if (showLabels && !seenBaseNames.has(s.base_name)) {
+        const showLabelsGlobal = document.getElementById('show-labels-toggle').checked;
+        const showLabelThisGroup = groupLabelSettings[s.base_name] !== false;
+
+        if (showLabelsGlobal && showLabelThisGroup && !seenBaseNames.has(s.base_name)) {
             seenBaseNames.add(s.base_name);
             if (s.z_real.length > 0) {
                 // Point the arrow to the PEAK of the Nyquist arc (Maximum Y/-Z'' value)
