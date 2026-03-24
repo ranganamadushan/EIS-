@@ -158,11 +158,12 @@ function parseCSVData(rawText, filename, fileIndex) {
                 concentration = parts[parts.length - 1]; // Use the last non-empty field
             }
 
-            let uniqueName = `${concentration}[${fileIndex}]`;
+            let baseName = `${concentration}[${fileIndex}]`;
+            let uniqueName = baseName;
 
-            counts[uniqueName] = (counts[uniqueName] || 0) + 1;
-            if (counts[uniqueName] > 1) {
-                uniqueName = `${concentration}[${fileIndex}] (Run ${counts[uniqueName]})`;
+            counts[baseName] = (counts[baseName] || 0) + 1;
+            if (counts[baseName] > 1) {
+                uniqueName = `${baseName} (Run ${counts[baseName]})`;
             }
 
             let zReal = [], zImag = [];
@@ -190,8 +191,8 @@ function parseCSVData(rawText, filename, fileIndex) {
 
             if (zReal.length > 0 && zImag.length > 0) {
                 samples.push({
-                    base_name: uniqueName, // Group by uniqueName so it shows on the chart as 10^(-7)[1]
-                    name: uniqueName,
+                    base_name: baseName, // e.g., 10^(-7)[1] (Used for the shared chart label)
+                    name: uniqueName,    // e.g., 10^(-7)[1] (Run 2) (Used for tooltip/sidebar)
                     z_real: zReal,
                     z_imag: zImag,
                     visible: true
