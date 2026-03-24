@@ -4,6 +4,7 @@ let plotlyData = [];
 let chartLayout = {};
 let fileNamesDisplay = [];
 let fileCustomNames = {}; // Stores custom labels per filename
+let customAnnotationOffsets = {}; // Stores { ax, ay } per base_name to persist drags
 // Extended palette roughly matching matplotlib tab20 + tab20b + tab20c
 let customColors = [
     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
@@ -394,17 +395,24 @@ function updatePlot() {
                     }
                 }
                 
-                // Double column stacking (all upwards) to avoid bottom cutoff
+                // Use custom offsets if the user has dragged this label, 
+                // otherwise use the default staggered stack offsets.
                 let colIdx = idx % 2;
                 let rowIdx = Math.floor(idx / 2);
                 let axOffset = 40 + (colIdx * 110);
                 let ayOffset = -20 - (rowIdx * 22); 
+                
+                if (customAnnotationOffsets[s.base_name]) {
+                    axOffset = customAnnotationOffsets[s.base_name].ax;
+                    ayOffset = customAnnotationOffsets[s.base_name].ay;
+                }
 
                 annotations.push({
                     x: s.z_real[peakIdx],
                     y: s.z_imag[peakIdx],
                     xref: 'x', yref: 'y',
                     text: `<b>${s.base_name}</b>`,
+                    name: s.base_name, // ID for tracking drags
                     showarrow: true,
                     arrowhead: 1,
                     arrowsize: 0.8,
@@ -459,7 +467,24 @@ function updatePlot() {
         }
     }
 
-    Plotly.react('plot-container', plotlyData, finalLayout);
+    Plotly.react('plot-container', plotlyData, finalLayout).then(gd => {
+        // After rendering, attach one-time listener to capture manual drags
+        gd.on('plotly_relayout', (eventData) => {
+            // Check if user is repositioning an annotation
+            Object.keys(eventData).forEach(key => {
+                const match = key.match(/^annotations\[(\d+)\]\.(ax|ay)$/);
+                if (match) {
+                    const annIdx = parseInt(match[1]);
+                    const field = match[2]; // 'ax' or 'ay'
+                    const ann = gd.layout.annotations[annIdx];
+                    if (ann && ann.name) {
+                        if (!customAnnotationOffsets[ann.name]) customAnnotationOffsets[ann.name] = {};
+                        customAnnotationOffsets[ann.name][field] = eventData[key];
+                    }
+                }
+            });
+        });
+    });
 }
 
 function applyLimits() {
