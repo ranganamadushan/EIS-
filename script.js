@@ -74,6 +74,7 @@ function attachEventListeners() {
     document.getElementById('apply-limits-btn').addEventListener('click', applyLimits);
     document.getElementById('auto-scale-btn').addEventListener('click', forceAutoscale);
     document.getElementById('show-lines-toggle').addEventListener('change', updatePlot);
+    document.getElementById('show-labels-toggle').addEventListener('change', updatePlot);
     document.getElementById('export-btn').addEventListener('click', exportSelectedCSV);
     document.getElementById('select-all-btn').addEventListener('click', () => setAllTraces(true));
     document.getElementById('clear-all-btn').addEventListener('click', () => setAllTraces(false));
@@ -382,7 +383,8 @@ function updatePlot() {
             type: 'scatter'
         });
 
-        if (!seenBaseNames.has(s.base_name)) {
+        const showLabels = document.getElementById('show-labels-toggle').checked;
+        if (showLabels && !seenBaseNames.has(s.base_name)) {
             seenBaseNames.add(s.base_name);
             if (s.z_real.length > 0) {
                 // Point the arrow to the PEAK of the Nyquist arc (Maximum Y/-Z'' value)
