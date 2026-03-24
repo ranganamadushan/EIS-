@@ -124,6 +124,43 @@ input[type="file"] {
     word-break: break-all;
 }
 
+.file-labels-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.file-label-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.file-label-item span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-label-item input {
+    width: 100%;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.file-label-item input:focus {
+    border-color: var(--accent-primary);
+}
+
 /* Axis Limits */
 .axis-inputs {
     margin-bottom: 12px;

@@ -3,6 +3,7 @@ let globalSamples = [];
 let plotlyData = [];
 let chartLayout = {};
 let fileNamesDisplay = [];
+let fileCustomNames = {}; // Stores custom labels per filename
 // Extended palette roughly matching matplotlib tab20 + tab20b + tab20c
 let customColors = [
     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
@@ -111,12 +112,22 @@ function handleFileUpload(event) {
             alert("No valid numerical data pairs found in the selected files.");
             return;
         }
+        
+        // Initialize custom names with index if not already present
+        files.forEach((file, index) => {
+            if (!fileCustomNames[file.name]) {
+                fileCustomNames[file.name] = (index + 1).toString();
+            }
+        });
+
         globalSamples = allSamples;
+        renderFileLabels();
+        syncLabels();
         forceAutoscale(); // Also updates UI components
     });
 }
 
-function parseCSVData(rawText, filename, fileIndex) {
+function parseCSVData(rawText, filename) {
     let lowerText = rawText.toLowerCase();
     
     // Fallback detection (similar to python script logic)
@@ -153,12 +164,13 @@ function parseCSVData(rawText, filename, fileIndex) {
 
             // Extract legend name from the last comma-separated part (Concentration)
             let concentration = rawName;
-            let parts = rawName.split(',').map(p => p.trim()).filter(p => p !== '');
+            let parts = rawName.split(',').map(p => p.trim()).filter(p => (p !== '' && p !== ' '));
             if (parts.length > 0) {
                 concentration = parts[parts.length - 1]; // Use the last non-empty field
             }
 
-            let baseName = `${concentration}[${fileIndex}]`;
+            // We store the filename so we can look up the custom label during rendering/updates
+            let baseName = `${concentration}[${filename}]`; 
             let uniqueName = baseName;
 
             counts[baseName] = (counts[baseName] || 0) + 1;
@@ -191,8 +203,10 @@ function parseCSVData(rawText, filename, fileIndex) {
 
             if (zReal.length > 0 && zImag.length > 0) {
                 samples.push({
-                    base_name: baseName, // e.g., 10^(-7)[1] (Used for the shared chart label)
-                    name: uniqueName,    // e.g., 10^(-7)[1] (Run 2) (Used for tooltip/sidebar)
+                    source_file: filename,
+                    concentration: concentration,
+                    base_name: baseName, 
+                    name: uniqueName,    
                     z_real: zReal,
                     z_imag: zImag,
                     visible: true
@@ -209,6 +223,61 @@ function parseCSVData(rawText, filename, fileIndex) {
     }
 
     return samples;
+}
+
+function renderFileLabels() {
+    const group = document.getElementById('file-labels-group');
+    const list = document.getElementById('file-labels-list');
+    
+    if (fileNamesDisplay.length === 0) {
+        group.style.display = 'none';
+        return;
+    }
+    
+    group.style.display = 'block';
+    list.innerHTML = '';
+    
+    fileNamesDisplay.forEach(fname => {
+        const item = document.createElement('div');
+        item.className = 'file-label-item';
+        
+        const span = document.createElement('span');
+        span.textContent = fname;
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = fileCustomNames[fname];
+        input.oninput = (e) => {
+            fileCustomNames[fname] = e.target.result || e.target.value;
+            syncLabels();
+        };
+        
+        item.appendChild(span);
+        item.appendChild(input);
+        list.appendChild(item);
+    });
+}
+
+function syncLabels() {
+    // Update labels in globalSamples based on current fileCustomNames
+    globalSamples.forEach(s => {
+        let customLabel = fileCustomNames[s.source_file] || "?";
+        s.base_name = `${s.concentration}[${customLabel}]`;
+        s.name = s.base_name;
+    });
+    
+    // We need to handle counts for unique names if same concentration exists in same file
+    let fileCounts = {};
+    globalSamples.forEach(s => {
+        let key = s.base_name;
+        fileCounts[key] = (fileCounts[key] || 0) + 1;
+        if (fileCounts[key] > 1) {
+            s.name = `${s.base_name} (Run ${fileCounts[key]})`;
+        }
+    });
+
+    renderSidebar();
+    updatePlot();
 }
 
 function renderSidebar() {
