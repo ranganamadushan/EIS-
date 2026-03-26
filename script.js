@@ -283,6 +283,12 @@ function syncLabels() {
     updatePlot();
 }
 
+function formatScientificLabel(text) {
+    if (!text) return "";
+    // Regular expression to find patterns like 10^-6, 10^(-6), or 10^[-6]
+    return text.replace(/([0-9.]+)\^[\(\[]?(-?[0-9.]+)[\]\)]?/g, "$1<sup>$2</sup>");
+}
+
 function renderSidebar() {
     const traceList = document.getElementById('trace-list');
     traceList.innerHTML = '';
@@ -443,7 +449,7 @@ function updatePlot() {
                     x: s.z_real[peakIdx],
                     y: s.z_imag[peakIdx],
                     xref: 'x', yref: 'y',
-                    text: `<b>${s.base_name}</b>`,
+                    text: `<b>${formatScientificLabel(s.base_name)}</b>`,
                     name: s.base_name, // ID for tracking drags
                     showarrow: true,
                     arrowhead: 1,
